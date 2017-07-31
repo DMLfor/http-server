@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hello</title>
+</head>
+<body>
+<h1>hello, world</h1>
+<h1>wa ou!</h1>
+<p> 1.fopen()
+
+　　fopen的原型是：FILE *fopen(const char *filename,const char *mode)，fopen实现三个功能
+
+为使用而打开一个流
+
+把一个文件和此流相连接
+
+给此流返回一个FILR指针
+
+参数filename指向要打开的文件名，mode表示打开状态的字符串，其取值如下表
+
+字符串 含义
+
+"r" 以只读方式打开文件
+
+"w" 以只写方式打开文件
+
+"a" 以追加方式打开文件
+
+"r+" 以读/写方式打开文件，如无文件出错
+
+"w+" 以读/写方式打开文件，如无文件生成新文件
+
+　　一个文件可以以文本模式或二进制模式打开，这两种的区别是：在文本模式中回车被当成一个字符''\n''，而二进制模式认为它是两个字符0x0D,0x0A；如果在文件中读到0x1B，文本模式会认为这是文件结束符，也就是二进制模型不会对文件进行处理，而文本方式会按一定的方式对数据作相应的转换。
+
+　　系统默认的是以文本模式打开，可以修改全部变量_fmode的值来修改这个设置，例如_fmode=O_TEXT；就设置默认打开方式为文本模式；而_fmode=O_BINARY；则设置默认打开方式是二进制模式。
+
+　　我们也可以在模式字符串中指定打开的模式，如"rb"表示以二进制模式打开只读文件，"w+t"或"wt+"表示以文本模式打开读/写文件。
+
+　　此函数返回一个FILE指针，所以申明一个FILE指针后不用初始化，而是用fopen()来返回一个指针并与一个特定的文件相连，如果成败，返回NULL。
+
+例:
+
+　　FILE *fp;
+
+　　if(fp=fopen("123.456","wb"))
+
+　　　　puts("打开文件成功");
+
+　　else
+
+　　　　puts("打开文件成败");
+
+2.fclose()
+
+　　fclose()的功能就是关闭用fopen()打开的文件，其原型是：int fclose(FILE *fp);如果成功，返回0,失败返回EOF。
+
+　　在程序结束时一定要记得关闭打开的文件，不然可能会造成数据丢失的情况，我以前就经常犯这样的毛病。
+
+例：fclose(fp);
+
+3.fputc()
+
+　　向流写一个字符，原型是int fputc(int c, FILE *stream); 成功返回这个字符,失败返回EOF。
+
+例：fputc(''X'',fp);
+
+4.fgetc()
+
+　　从流中读一个字符，原型是int fputc(FILE *stream); 成功返回这个字符,失败返回EOF。
+
+例：char ch1=fgetc(fp);
+
+5. fseek()
+
+　　此函数一般用于二进制模式打开的文件中，功能是定位到流中指定的位置，原型是int fseek(FILE *stream, long offset, int whence);如果成功返回0，参数offset是移动的字符数，whence是移动的基准，取值是
+
+符号常量 值 基准位置
+
+SEEK_SET 0 文件开头
+
+SEEK_CUR 1 当前读写的位置
+
+SEEK_END 2 文件尾部
+
+例：fseek(fp,1234L,SEEK_CUR);//把读写位置从当前位置向后移动1234字节(L后缀表示长整数)
+
+　　fseek(fp,0L,2);//把读写位置移动到文件尾
+
+6.fputs()
+
+　　写一个字符串到流中，原型int fputs(const char *s, FILE *stream);
+
+例：fputs("I Love You",fp);
+ 7.fgets()
+
+　　从流中读一行或指定个字符，原型是char *fgets(char *s, int n, FILE *stream); 从流中读取n-1个字符，除非读完一行，参数s是来接收字符串，如果成功则返回s的指针，否则返回NULL。
+
+例：如果一个文件的当前位置的文本如下
+
+Love ,I Have
+
+But ……..
+
+如果用
+
+　　fgets(str1,4,file1);
+
+则执行后str1="Lov"，读取了4-1=3个字符，而如果用
+
+　　fgets(str1,23,file1);
+
+则执行str="Love ,I Have"，读取了一行(不包括行尾的''\n'')。
+ 8.fprintf()
+
+　　按格式输入到流，其原型是int fprintf(FILE *stream, const char *format[, argument, …]);其用法和printf()相同，不过不是写到控制台，而是写到流罢了
+
+例：fprintf(fp,"%2d%s",4,"Hahaha");
+
+9.fscanf()
+
+　　从流中按格式读取，其原型是int fscanf(FILE *stream, const char *format[, address, …]);其用法和scanf()相同，不过不是从控制台读取，而是从流读取罢了。
+
+例：fscanf(fp,"%d%d" ,&x,&y);
+
+</p>
+</body>
+</html>
