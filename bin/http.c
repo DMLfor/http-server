@@ -4,7 +4,7 @@
 #include "epoll.h"
 #include "log.h"
 #include "filebuf.h"
-
+#include <netinet/tcp.h>
 //配置文件结构体
 struct http_conf_t conf;
 
@@ -111,7 +111,8 @@ int startup(uint16_t *server_port, int listen_num)
     //设置为端口复用
     if((setsockopt(server_sock, SOL_SOCKET,SO_REUSEADDR, &on, sizeof(on))) < 0)
         perror("setsockopt fail!");
-
+    
+    setsockopt(server_sock, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
     if(bind(server_sock, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_in)) <0)
     {
         perror("bind fail");
