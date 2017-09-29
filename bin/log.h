@@ -18,13 +18,16 @@ typedef struct msglog
     char msg[128];       //日志信息
     int grade;          //分级
     struct msglog *next;//下一节点
-} msglog_t;
+    } msglog_t;
 
 typedef struct log_thread
 {
     volatile int size;
     msglog_t *head;    //链表头指针
     msglog_t *tail;     //链表尾指针
+    pthread_mutex_t lock;
+    pthread_cond_t log_not_empty;
+
 } log_thread_t;
 
 int fast_cat(char *s, const char *p, int start);

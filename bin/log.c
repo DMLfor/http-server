@@ -1,7 +1,5 @@
 #include "log.h"
 
-pthread_mutex_t lock;
-
 //日志分级信息
 //0  为 [info]
 //1 为 [debug]
@@ -12,12 +10,17 @@ char log_grade[][15] = {" [info]: ", " [debug]: ", " [warn]: ", " [erro]: "};
 //初始话日志线程
 void init_log_thread(log_thread_t *log_thread)
 {
-    if(pthread_mutex_init(&lock, NULL) != 0)
+    if(pthread_mutex_init(&(log_thread->lock), NULL) != 0)
     {
         perror("fail to init lock");
         exit(EXIT_FAILURE);
     }
 
+    if(pthread_cond_init(&(log_thread->log_not_empty), NULL) != 0)
+    {
+        perror("faile to init log_not_empty");
+        exit(EXIT_FAILURE);
+    }
     log_thread->size = 0;
     log_thread->head = log_thread->tail = NULL;
 }
@@ -33,7 +36,7 @@ void push_log(int error, const char *str, int grade, log_thread_t *log_thread)
     msg_i->next = NULL;
 
     //多个工作线程，需要加锁
-    if(pthread_mutex_lock(&lock) < 0)
+    if(pthread_mutex_lock(&(log_thread->lock)) < 0)
     {
         perror("lock fail");
     }
@@ -48,10 +51,16 @@ void push_log(int error, const char *str, int grade, log_thread_t *log_thread)
     ++ log_thread->size;
 
     //解锁
-    if(pthread_mutex_unlock(&lock) < 0)
+    if(pthread_mutex_unlock(&(log_thread->lock)) < 0)
     {
         perror("unlock fail");
     }
+   
+    if(pthread_cond_signal(&(log_thread->log_not_empty)) != 0)
+    {
+        perror("faile to signal loh_not_empty");
+    }
+
 }
 
 //日志线程入口, 日志线程会在此处不断从日志链表中取出
@@ -74,9 +83,28 @@ void *log_work(void *arg)
     }
     while(1)
     {
+        if(pthread_mutex_lock(&(log_thread->lock)) != 0)
+        {
+            perror("fail to lock the mutex");
+            pthread_exit(NULL);
+        }
+
+        while(log_thread->size == 0)
+        {
+            if(pthread_cond_wait(&(log_thread->log_not_empty), &(log_thread->lock)) != 0)
+            {
+                perror("fail to wait log_not_empty");
+                pthread_exit(NULL);
+            }
+        }
+
+        if(pthread_mutex_unlock(&(log_thread->lock)) < 0)
+        {
+            perror("fail to lock mutex");
+        }
+
         if(log_thread->size > 0)
         {
-
 			//文件大小轮替
             if(total > 52428800)
             {
@@ -106,7 +134,7 @@ void *log_work(void *arg)
             start = fast_cat(buf, ptr->msg, start);
 
             //加锁
-            if(pthread_mutex_lock(&lock) < 0)
+            if(pthread_mutex_lock(&(log_thread->lock)) < 0)
             {
                 perror("fail to lock mutex");
             }
@@ -121,7 +149,7 @@ void *log_work(void *arg)
             ptr = NULL;
 
             //解锁
-            if(pthread_mutex_unlock(&lock) < 0)
+            if(pthread_mutex_unlock(&(log_thread->lock)) < 0)
             {
                 perror("fail to lock mutex");
             }
